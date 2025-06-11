@@ -1,0 +1,136 @@
+openapi: 3.0.1
+info:
+  title: Road Heatmap API
+  version: v1
+  description: 用于道路路面状态更新与热力图预览的接口
+
+paths:
+  /preview_map:
+    get:
+      summary: 预览道路热力图
+      operationId: preview_map
+      responses:
+        "200":
+          description: 成功返回热力图链接
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  map_url:
+                    type: string
+                    example: "https://your-domain.com/static/map.html"
+
+  /update_by_location:
+    post:
+      summary: 通过经纬度更新路面质量
+      operationId: update_by_location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateByLocationRequest'
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "已更新指定经纬度位置的路况质量为 80"
+        "422":
+          description: 参数验证失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /update_by_name:
+    post:
+      summary: 通过道路名称模糊匹配并更新状态
+      operationId: update_by_name
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateByNameRequest'
+      responses:
+        "200":
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "雄楚大道路况已更新为 30"
+        "422":
+          description: 参数验证失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+components:
+  schemas:
+    UpdateByLocationRequest:
+      type: object
+      properties:
+        lat:
+          type: number
+          description: 纬度
+        lon:
+          type: number
+          description: 经度
+        quality:
+          type: integer
+          description: 路况评分
+      required:
+        - lat
+        - lon
+        - quality
+
+    UpdateByNameRequest:
+      type: object
+      properties:
+        keyword:
+          type: string
+          description: 道路名关键词
+        quality:
+          type: integer
+          description: 路况评分
+      required:
+        - keyword
+        - quality
+
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+
+    ValidationError:
+      type: object
+      properties:
+        loc:
+          type: array
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+        msg:
+          type: string
+        type:
+          type: string
+      required:
+        - loc
+        - msg
+        - type
